@@ -31,6 +31,23 @@ var A = new Vec3(0, 0, 4); // Kamera-Pos. (Auge)
 var B = new Vec3(0, 0, 0); // Zielpunkt
 var up = new Vec3(0, 1, 0); // up-Richtung
 
+// Startpunkt
+const start = new Vec3(1, 0.2, 0);
+
+// Schussrichtung
+const direction = new Vec3(0, 0, -0.1);
+
+// Auftrieb
+const buoyancy = new Vec3(-0.01, 0.01, 0);
+// assert(buoyancy.angle(direction) === Math.PI / 2);
+
+// Erdanzieung
+const gravitation = new Vec3(0, -0.001, 0);
+
+let rotation = buoyancy.angle(new Vec3(1, 0, 0));
+let currentPosition = start;
+let currentDirection = direction;
+
 var phi = 0; // Drehwinkel Torus
 var dPhi = 0.5; // Zuwachs Drehwinkel
 var stopped = false; // Animation stoppen
@@ -102,11 +119,28 @@ function render() {
   if (!stopped) phi += dPhi; // Drehwinkel erhoehen
   */
 
-  M = M.postMultiply(Mat4.translate(2 * Math.cos(step), 1, Math.sin(step)));
+  M = M.postMultiply(
+    Mat4.translate(currentPosition.x, currentPosition.y, currentPosition.z)
+  ).postMultiply(
+    Mat4.rotate(
+      rotation * 180 / Math.PI,
+      currentDirection.x,
+      currentDirection.y,
+      currentDirection.z
+    )
+  );
   mygl.setM(gl, M);
 
   mygl.setColor(0.8, 0.2, 0.2);
   rotk.zeichneZylinder(gl, 0.2, 0.05, 20, 40, true);
+
+  currentPosition = currentPosition
+    .add(currentDirection)
+    .add(buoyancy)
+    .add(gravitation);
+  /*
+  currentDirection = currentDirection.add(gravitation).add(buoyancy);
+  */
 
   step += dStep;
 
