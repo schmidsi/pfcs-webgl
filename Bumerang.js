@@ -31,29 +31,10 @@ var A = new Vec3(0, 0, 4); // Kamera-Pos. (Auge)
 var B = new Vec3(0, 0, 0); // Zielpunkt
 var up = new Vec3(0, 1, 0); // up-Richtung
 
-// Startpunkt
-const start = new Vec3(1, 0.2, 0);
-
-// Schussrichtung
-const direction = new Vec3(0, 0, -0.1);
-
-// Auftrieb
-const buoyancy = new Vec3(-0.01, 0.01, 0);
-// assert(buoyancy.angle(direction) === Math.PI / 2);
-
-// Erdanzieung
-const gravitation = new Vec3(0, -0.001, 0);
-
-let rotation = buoyancy.angle(new Vec3(1, 0, 0));
-let currentPosition = start;
-let currentDirection = direction;
-
-var phi = 0; // Drehwinkel Torus
-var dPhi = 0.5; // Zuwachs Drehwinkel
 var stopped = false; // Animation stoppen
 
 let step = 0;
-const dStep = 0.1;
+let dStep = 0.05;
 
 // ------  Initialisierung  --------
 
@@ -120,29 +101,22 @@ function render() {
   */
 
   M = M.postMultiply(
-    Mat4.translate(currentPosition.x, currentPosition.y, currentPosition.z)
-  ).postMultiply(
-    Mat4.rotate(
-      rotation * 180 / Math.PI,
-      currentDirection.x,
-      currentDirection.y,
-      currentDirection.z
+    Mat4.translate(
+      2.5 * Math.cos(step),
+      0.5 + 0.5 * Math.sin(step),
+      2 * Math.sin(step)
     )
   );
+
   mygl.setM(gl, M);
 
   mygl.setColor(0.8, 0.2, 0.2);
   rotk.zeichneZylinder(gl, 0.2, 0.05, 20, 40, true);
+  mygl.setShadingLevel(gl, 0); // Beleuchtung aus
+  mygl.setColor(0, 1, 1);
+  rotk.zeichneZylinder(gl, 0.2, 0.05, 20, 40, false); // Gitterlinien des Torus
 
-  currentPosition = currentPosition
-    .add(currentDirection)
-    .add(buoyancy)
-    .add(gravitation);
-  /*
-  currentDirection = currentDirection.add(gravitation).add(buoyancy);
-  */
-
-  step += dStep;
+  if (!stopped) step += dStep;
 
   requestAnimFrame(render); // next frame
 }
@@ -174,14 +148,17 @@ window.onkeydown = function(event) {
       break;
     case charCode("V"):
       if (event.shiftKey == 1)
-        dPhi += 0.2; // 'V'
-      else dPhi -= 0.1; // 'v'
+        dStep += 0.02; // 'V'
+      else dStep -= 0.01; // 'v'
       break;
     case 190: // .
-      dPhi -= 0.1;
+      dStep -= 0.01;
       break;
     case 188: // .
-      dPhi += 0.2;
+      dStep += 0.01;
+      break;
+    case 32:
+      stopped = !stopped;
       break;
   }
 };
