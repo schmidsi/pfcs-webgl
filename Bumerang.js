@@ -31,7 +31,7 @@ var A = new Vec3(0, 0, 4); // Kamera-Pos. (Auge)
 var B = new Vec3(0, 0, 0); // Zielpunkt
 var up = new Vec3(0, 1, 0); // up-Richtung
 
-var stopped = false; // Animation stoppen
+var stopped = true; // Animation stoppen
 
 let step = 0;
 let dStep = 0.05;
@@ -52,7 +52,7 @@ window.onload = function init() {
   ybottom = aspect * left;
   ytop = aspect * right;
   gl.viewport(0, 0, canvas.width, canvas.height);
-  gl.clearColor(0.1, 0.4, 0.8, 1.0); // Hintergrund-Farbe
+  gl.clearColor(0, 0, 0, 1.0); // Hintergrund-Farbe
   gl.enable(gl.DEPTH_TEST); // Sichtbarkeits-Test
   rotk = new RotKoerper(mygl);
   gl.enable(gl.POLYGON_OFFSET_FILL); // Polygon OffsetFill Mode
@@ -82,43 +82,30 @@ function render() {
   mygl.setShadingLevel(gl, 0); // ohne Beleuchtung
   mygl.drawAxis(gl, 2, 2, 2);
 
-  //  ------  Objekt-System (ModelMatrix)  ------
-  /*
-  M = M.postMultiply(Mat4.rotate(phi, 0, 1, 0));
-  mygl.setM(gl, M);
-  */
+  for (var i = 0; i < 10; i++) {
+    drawBumerang(step + i * 0.6);
+  }
 
-  //  ------  Torus zeichnen  ------
-  /*
-  mygl.setColor(0, 0.4, 1);
-  mygl.setShadingParam(gl, 0.2, 0.8); // Parameter ambient und diffuse
-  mygl.setShadingLevel(gl, 1); // Beleuchtung ein
-  rotk.zeichneTorus(gl, 0.5, 2, 20, 40, true); // Torus zeichnen
-  mygl.setShadingLevel(gl, 0); // Beleuchtung aus
-  mygl.setColor(0, 1, 1);
-  rotk.zeichneTorus(gl, 0.5, 2, 20, 40, false); // Gitterlinien des Torus
-  if (!stopped) phi += dPhi; // Drehwinkel erhoehen
-  */
+  if (!stopped) step += dStep;
 
-  M = M.postMultiply(
+  requestAnimFrame(render); // next frame
+}
+
+function drawBumerang(step) {
+  var thisM = M.postMultiply(
     Mat4.translate(
       2.5 * Math.cos(step),
       0.5 + 0.5 * Math.sin(step),
       2 * Math.sin(step)
     )
-  );
+  ).postMultiply(Mat4.rotate(-45, Math.sin(step), 0, -Math.cos(step)));
 
-  mygl.setM(gl, M);
+  mygl.setM(gl, thisM);
 
   mygl.setColor(0.8, 0.2, 0.2);
-  rotk.zeichneZylinder(gl, 0.2, 0.05, 20, 40, true);
-  mygl.setShadingLevel(gl, 0); // Beleuchtung aus
-  mygl.setColor(0, 1, 1);
-  rotk.zeichneZylinder(gl, 0.2, 0.05, 20, 40, false); // Gitterlinien des Torus
-
-  if (!stopped) step += dStep;
-
-  requestAnimFrame(render); // next frame
+  rotk.zeichneZylinder(gl, 0.3, 0.05, 20, 40, true);
+  mygl.setColor(1, 1, 1, 0.8);
+  rotk.zeichneZylinder(gl, 0.3, 0.05, 20, 6, false);
 }
 
 function charCode(
