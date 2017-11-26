@@ -31,7 +31,7 @@ var A = new Vec3(0, 0, 4); // Kamera-Pos. (Auge)
 var B = new Vec3(0, 0, 0); // Zielpunkt
 var up = new Vec3(0, 1, 0); // up-Richtung
 
-var stopped = true; // Animation stoppen
+var stopped = false; // Animation stoppen
 
 let step = 0;
 let dStep = 0.05;
