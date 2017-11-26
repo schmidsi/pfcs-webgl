@@ -95,7 +95,7 @@ function drawBumerang(step) {
   var thisM = M.postMultiply(
     Mat4.translate(
       2.5 * Math.cos(step),
-      0.5 + 0.5 * Math.sin(step),
+      0.5 + Math.sin(step),
       2 * Math.sin(step)
     )
   ).postMultiply(Mat4.rotate(-45, Math.sin(step), 0, -Math.cos(step)));
