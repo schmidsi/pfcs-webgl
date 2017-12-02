@@ -20,7 +20,6 @@ var programId; // Programm-Id
 
 //  --------  Funktionen  -----------------------------------
 
-// ------  Dreieck zeichnen  --------
 function zeichneDreieck(gl, x1, y1, x2, y2, x3, y3) {
   mygl.rewindBuffer(gl);
   mygl.putVertex(x1, y1, 0); // Eckpunkte in VertexArray speichern
@@ -28,6 +27,20 @@ function zeichneDreieck(gl, x1, y1, x2, y2, x3, y3) {
   mygl.putVertex(x3, y3, 0);
   mygl.copyBuffer(gl);
   mygl.drawArrays(gl, gl.TRIANGLES); // Figur zeichnen
+}
+
+function drawCircle(gl, r, xm, ym, pts) {
+  const phi = 2 * Math.PI / pts;
+  let x, y;
+  mygl.rewindBuffer(gl);
+  mygl.putVertex(xm, ym, 0);
+  for (var i = 0; i <= pts; i++) {
+    x = xm + r * Math.cos(i * phi);
+    y = ym + r * Math.sin(i * phi);
+    mygl.putVertex(x, y, 0);
+  }
+  mygl.copyBuffer(gl);
+  mygl.drawArrays(gl, gl.TRIANGLE_FAN);
 }
 
 function drawLine(gl, rootVector, directionVector) {
@@ -90,7 +103,8 @@ function render() {
   mygl.setColor(1, 0, 0);
   // zeichneDreieck(gl, -a, -a, a, -a, 0, a);
 
-  const rootVector = integralCurve(0.2, t / 100);
+  drawCircle(gl, 0.2, 0, 0, 100);
+  const rootVector = integralCurve(0.2, t / 20);
   const directionVector = linearField(rootVector);
   drawLine(gl, rootVector, directionVector);
 
