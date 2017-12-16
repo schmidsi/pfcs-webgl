@@ -15,10 +15,64 @@ var P = Mat4.ID; // Projektionsmatrix
 let t = 0;
 var stopped = false; // Animation stoppen
 
-var maxVerts = 1024; // max. Anzahl Vertices im Buffer
+var maxVerts = 2028; // max. Anzahl Vertices im Buffer
 var programId; // Programm-Id
 
 //  --------  Funktionen  -----------------------------------
+
+const f1 = (x, y, r) =>
+  1 + r ** 2 / (x ** 2 + y ** 2) - 2 * r ** 2 * x ** 2 / (x ** 2 + y ** 2) ** 2;
+
+const f2 = (x, y, r) => -(2 * r ** 2 * x * y / (x ** 2 + y ** 2) ** 2);
+
+function CylinderDynamics() {
+  function f(v) {
+    const x = v[0];
+    const y = v[1];
+
+    return [f1(x, y, 0.2), f2(x, y, 0.2), 0];
+  }
+
+  this.dynamics = new Dynamics(f);
+
+  this.drawStream = (mygl, gl, xStart, yStart, dt, steps) => {
+    mygl.rewindBuffer(gl);
+    let x = [xStart, yStart, 0];
+
+    for (var i = 0; i < steps; i++) {
+      x = this.dynamics.runge(x, dt);
+      mygl.setColor(1, Math.sin(i), 0);
+      mygl.putVertex(x[0], x[1], 0);
+    }
+
+    mygl.copyBuffer(gl);
+    mygl.drawArrays(gl, gl.LINE_STRIP);
+  };
+}
+
+const cylinderDynamics = new CylinderDynamics();
+
+function drawFieldLine(gl, startY, steps, r) {
+  const leftX = -1;
+  const rightX = 1;
+  const step = (rightX - leftX) / steps;
+  let lastX = leftX;
+  let lastY = startY;
+
+  mygl.rewindBuffer(gl);
+  mygl.putVertex(lastX, lastY, 0);
+
+  for (var i = 0; i <= steps; i++) {
+    mygl.setColor(1, Math.sin(i), 0);
+    lastX = f1(lastX, lastY, r);
+    lastY = f2(lastX, lastY, r);
+    // mygl.putVertex(leftX + i * step, startY, 0);
+    mygl.putVertex(lastX, lastY, 0);
+  }
+
+  mygl.copyBuffer(gl);
+  mygl.drawArrays(gl, gl.LINE_STRIP);
+}
 
 function zeichneDreieck(gl, x1, y1, x2, y2, x3, y3) {
   mygl.rewindBuffer(gl);
@@ -104,9 +158,19 @@ function render() {
   // zeichneDreieck(gl, -a, -a, a, -a, 0, a);
 
   drawCircle(gl, 0.2, 0, 0, 100);
+
   const rootVector = integralCurve(0.2, t / 20);
   const directionVector = linearField(rootVector);
   drawLine(gl, rootVector, directionVector);
+
+  const lines = 50;
+  const topY = 1;
+  const bottomY = -1;
+  const stepSize = (topY - bottomY) / lines;
+  for (var i = 1; i <= lines; i++) {
+    // drawFieldLine(gl, topY - i * stepSize, lines, 0.2);
+    cylinderDynamics.drawStream(mygl, gl, -1, topY - i * stepSize, 0.01, 2000);
+  }
 
   if (!stopped) t++;
 
