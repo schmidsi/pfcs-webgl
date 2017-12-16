@@ -18,6 +18,9 @@ var stopped = false; // Animation stoppen
 var maxVerts = 2028; // max. Anzahl Vertices im Buffer
 var programId; // Programm-Id
 
+let r = 0.2;
+let lines = 51;
+
 //  --------  Funktionen  -----------------------------------
 
 const f1 = (x, y, r) =>
@@ -30,7 +33,7 @@ function CylinderDynamics() {
     const x = v[0];
     const y = v[1];
 
-    return [f1(x, y, 0.2), f2(x, y, 0.2), 0];
+    return [f1(x, y, r), f2(x, y, r), 0];
   }
 
   this.dynamics = new Dynamics(f);
@@ -52,37 +55,6 @@ function CylinderDynamics() {
 
 const cylinderDynamics = new CylinderDynamics();
 
-function drawFieldLine(gl, startY, steps, r) {
-  const leftX = -1;
-  const rightX = 1;
-  const step = (rightX - leftX) / steps;
-  let lastX = leftX;
-  let lastY = startY;
-
-  mygl.rewindBuffer(gl);
-  mygl.putVertex(lastX, lastY, 0);
-
-  for (var i = 0; i <= steps; i++) {
-    mygl.setColor(1, Math.sin(i), 0);
-    lastX = f1(lastX, lastY, r);
-    lastY = f2(lastX, lastY, r);
-    // mygl.putVertex(leftX + i * step, startY, 0);
-    mygl.putVertex(lastX, lastY, 0);
-  }
-
-  mygl.copyBuffer(gl);
-  mygl.drawArrays(gl, gl.LINE_STRIP);
-}
-
-function zeichneDreieck(gl, x1, y1, x2, y2, x3, y3) {
-  mygl.rewindBuffer(gl);
-  mygl.putVertex(x1, y1, 0); // Eckpunkte in VertexArray speichern
-  mygl.putVertex(x2, y2, 0);
-  mygl.putVertex(x3, y3, 0);
-  mygl.copyBuffer(gl);
-  mygl.drawArrays(gl, gl.TRIANGLES); // Figur zeichnen
-}
-
 function drawCircle(gl, r, xm, ym, pts) {
   const phi = 2 * Math.PI / pts;
   let x, y;
@@ -95,41 +67,6 @@ function drawCircle(gl, r, xm, ym, pts) {
   }
   mygl.copyBuffer(gl);
   mygl.drawArrays(gl, gl.TRIANGLE_FAN);
-}
-
-function drawLine(gl, rootVector, directionVector) {
-  const endPosVector = rootVector.add(directionVector);
-
-  // console.log(rootVector, endPosVector);
-
-  mygl.rewindBuffer(gl);
-  mygl.putVertex(rootVector.x, rootVector.y, 0);
-  mygl.putVertex(endPosVector.x, endPosVector.y, 0);
-  mygl.copyBuffer(gl);
-  mygl.drawArrays(gl, gl.LINES);
-}
-
-// Gemäss Newtonsche Mechanik s. 35
-function radialField(vector) {
-  const r = vector.length();
-  return vector.scale(r * 10);
-}
-
-// Gemäss Newton'sche Mechanik s. 36
-function linearField(vector) {
-  const a = 0;
-  const b = -1;
-  const c = 1;
-  const d = 0;
-
-  const x = a * vector.x + b * vector.y;
-  const y = c * vector.x + d * vector.y;
-  return new Vec3(x, y, 0);
-}
-
-// Integralkurve gemäss Newton'sche Mechanik s. 38
-function integralCurve(r, t) {
-  return new Vec3(r * Math.cos(t), r * Math.sin(t), 0);
 }
 
 // ------  Initialisierung  --------
@@ -157,13 +94,8 @@ function render() {
   mygl.setColor(1, 0, 0);
   // zeichneDreieck(gl, -a, -a, a, -a, 0, a);
 
-  drawCircle(gl, 0.2, 0, 0, 100);
+  drawCircle(gl, r, 0, 0, 100);
 
-  const rootVector = integralCurve(0.2, t / 20);
-  const directionVector = linearField(rootVector);
-  drawLine(gl, rootVector, directionVector);
-
-  const lines = 50;
   const topY = 1;
   const bottomY = -1;
   const stepSize = (topY - bottomY) / lines;
@@ -179,7 +111,17 @@ function render() {
 
 // ------  Button-Verarbeitung  ------------------
 
-function button1() {
-  // Button-Funktion
-  stopped = !stopped;
+function bigger() {
+  r += 0.01;
 }
+
+function smaller() {
+  r -= 0.01;
+}
+
+const setLines = event => {
+  lines = parseInt(event.target.value, 10);
+};
+
+document.getElementById("changelines").addEventListener("change", setLines);
+document.getElementById("changelines").addEventListener("click", setLines);
